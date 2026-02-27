@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suite Bioinformática Avanzada</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Sora:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --path-color: #f1c40f;
+            --path-border: #f39c12;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+            /* BWT specific */
+            --bwt-bg: #0d1117;
+            --bwt-surface: #161b22;
+            --bwt-border: #30363d;
+            --bwt-green: #39d353;
+            --bwt-blue: #58a6ff;
+            --bwt-orange: #ff7b00;
+            --bwt-purple: #bc8cff;
+            --bwt-red: #ff6b6b;
+            --bwt-yellow: #ffd60a;
+            --bwt-text: #e6edf3;
+            --bwt-muted: #8b949e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: #f4f7f6;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 { font-size: 1.5rem; font-weight: 600; }
+
+        nav button {
+            background: transparent;
+            border: none;
+            color: #bdc3c7;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        nav button:hover { color: white; }
+        nav button.active {
+            color: white;
+            border-bottom-color: var(--accent);
+            font-weight: bold;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .algorithm-section {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .algorithm-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { border-bottom: 2px solid var(--light); padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: var(--secondary); }
+
+        .controls {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; }
+        
+        input[type="text"], input[type="number"] {
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        input[type="text"] { text-transform: uppercase; font-family: monospace; }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background-color: #2980b9; }
+
+        .params-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+            background: #e8ecef;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .results-area { margin-top: 2rem; }
+        .matrix-container { overflow-x: auto; margin-top: 1rem; padding-bottom: 1rem; }
+
+        table.alignment-matrix { border-collapse: separate; border-spacing: 2px; font-family: var(--font-mono); }
+        .alignment-matrix th, .alignment-matrix td { border: 1px solid #dcdcdc; min-width: 90px; text-align: center; position: relative; }
+        .alignment-matrix th { background-color: var(--secondary); color: white; padding: 10px; font-weight: bold; }
+
+        .cell-detail { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; }
+        .score-val { font-size: 1.1rem; font-weight: bold; }
+        .ops-row { display: flex; gap: 2px; margin: 3px 0; }
+        .op-chip {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 22px; border-radius: 3px;
+            font-size: 0.7rem; font-family: monospace; font-weight: 600;
+            border: 1px solid transparent;
+        }
+        .op-chip.op-diag { background: #e8f4fd; color: #2980b9; border-color: #aed6f1; }
+        .op-chip.op-up   { background: #eafaf1; color: #1e8449; border-color: #a9dfbf; }
+        .op-chip.op-left { background: #fef9e7; color: #b7950b; border-color: #f9e79f; }
+        .op-chip.op-chosen { font-weight: 800; box-shadow: 0 0 0 2px currentColor; }
+        .op-chip.op-stop { background: #f9f9f9; color: #999; border-color: #ddd; }
+
+        .cell-highlight {
+            background-color: var(--path-color) !important;
+            border: 2px solid var(--path-border) !important;
+            box-shadow: 0 0 5px rgba(243, 156, 18, 0.5);
+            z-index: 10;
+        }
+        .cell-highlight .score-val { color: #d35400; }
+
+        .alignment-result {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            margin-top: 2rem;
+            overflow-x: auto;
+        }
+        
+        .alignment-line {
+            display: block;
+            white-space: pre;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            letter-spacing: 2px;
+        }
+
+        .line-matches { color: var(--success); font-weight: bold; }
+        .line-seq1 { color: #3498db; }
+        .line-seq2 { color: #e67e22; }
+
+        .status-msg { margin-top: 1rem; padding: 1rem; border-radius: 4px; display: none; }
+        .status-error { background-color: #fadbd8; color: #721c24; border: 1px solid #f5c6cb; }
+        .status-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+        /* =============================================
+           BWT — NUEVA SECCIÓN VISUAL
+           ============================================= */
+
+        #bwt {
+            background: var(--bwt-bg);
+            color: var(--bwt-text);
+            border: 1px solid var(--bwt-border);
+        }
+
+        #bwt h2 {
+            color: var(--bwt-green);
+            border-bottom-color: var(--bwt-border);
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        #bwt p {
+            color: var(--bwt-muted);
+            font-family: 'Sora', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        #bwt .controls {
+            background: var(--bwt-surface);
+            border: 1px solid var(--bwt-border);
+        }
+
+        #bwt .form-group label {
+            color: var(--bwt-blue);
+            font-family: 'Sora', sans-serif;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #bwt input[type="text"] {
+            background: #0d1117;
+            border: 1px solid var(--bwt-border);
+            color: var(--bwt-yellow);
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+        }
+        #bwt input[type="text"]:focus {
+            outline: none;
+            border-color: var(--bwt-blue);
+            box-shadow: 0 0 0 2px rgba(88,166,255,0.2);
+        }
+
+        #bwt .btn-primary {
+            background: transparent;
+            border: 1px solid var(--bwt-green);
+            color: var(--bwt-green);
+            font-family: var(--font-mono);
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        #bwt .btn-primary:hover {
+            background: var(--bwt-green);
+            color: #0d1117;
+        }
+
+        /* Pipeline de pasos */
+        .bwt-pipeline {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .bwt-step {
+            background: var(--bwt-surface);
+            border: 1px solid var(--bwt-border);
+            border-radius: 8px;
+            overflow: hidden;
+            animation: slideUp 0.5s ease both;
+        }
+
+        .bwt-step:nth-child(1) { animation-delay: 0.05s; }
+        .bwt-step:nth-child(2) { animation-delay: 0.15s; }
+        .bwt-step:nth-child(3) { animation-delay: 0.25s; }
+        .bwt-step:nth-child(4) { animation-delay: 0.35s; }
+        .bwt-step:nth-child(5) { animation-delay: 0.45s; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bwt-step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.4rem;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--bwt-border);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .bwt-step-header:hover { background: rgba(255,255,255,0.06); }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .step-1 .step-badge { background: rgba(88,166,255,0.15); color: var(--bwt-blue); border: 1px solid var(--bwt-blue); }
+        .step-2 .step-badge { background: rgba(188,140,255,0.15); color: var(--bwt-purple); border: 1px solid var(--bwt-purple); }
+        .step-3 .step-badge { background: rgba(57,211,83,0.15); color: var(--bwt-green); border: 1px solid var(--bwt-green); }
+        .step-4 .step-badge { background: rgba(255,123,0,0.15); color: var(--bwt-orange); border: 1px solid var(--bwt-orange); }
+        .step-5 .step-badge { background: rgba(255,214,10,0.15); color: var(--bwt-yellow); border: 1px solid var(--bwt-yellow); }
+
+        .step-title {
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--bwt-text);
+        }
+
+        .step-subtitle {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.78rem;
+            color: var(--bwt-muted);
+            margin-left: auto;
+        }
+
+        .step-toggle {
+            color: var(--bwt-muted);
+            font-size: 0.9rem;
+            margin-left: 8px;
+            transition: transform 0.3s;
+        }
+        .bwt-step.collapsed .step-toggle { transform: rotate(-90deg); }
+
+        .bwt-step-body {
+            padding: 1.2rem 1.4rem;
+            overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease;
+        }
+        .bwt-step.collapsed .bwt-step-body { max-height: 0 !important; padding: 0 1.4rem; opacity: 0; }
+
+        /* PASO 1: original + sentinela */
+        .original-seq-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .seq-char {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 1.3rem;
+            font-weight: 800;
+            border: 2px solid;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .seq-char:hover { transform: scale(1.15); }
+        .seq-char .char-idx {
+            position: absolute;
+            bottom: -18px;
+            font-size: 0.6rem;
+            color: var(--bwt-muted);
+            font-weight: 400;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .seq-char.normal { background: rgba(88,166,255,0.1); border-color: rgba(88,166,255,0.4); color: var(--bwt-blue); }
+        .seq-char.sentinel { background: rgba(255,107,107,0.15); border-color: rgba(255,107,107,0.6); color: var(--bwt-red); }
+
+        .arrow-separator {
+            color: var(--bwt-muted);
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+        }
+
+        /* PASO 2: tabla de rotaciones */
+        .rotation-label {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.78rem;
+            color: var(--bwt-muted);
+            margin-bottom: 0.8rem;
+        }
+
+        .rotation-grid {
+            display: grid;
+            gap: 4px;
+            width: max-content;
+        }
+
+        .rot-row {
+            display: grid;
+            align-items: center;
+            gap: 0;
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+        }
+
+        .rot-idx {
+            color: var(--bwt-muted);
+            font-size: 0.75rem;
+            width: 28px;
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .rot-char {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .rot-char.first-char { background: rgba(88,166,255,0.12); color: var(--bwt-blue); }
+        .rot-char.last-char { background: rgba(255,123,0,0.18); color: var(--bwt-orange); border: 1px solid rgba(255,123,0,0.4); }
+        .rot-char.sentinel-char { background: rgba(255,107,107,0.12); color: var(--bwt-red); }
+        .rot-char.normal-char { color: var(--bwt-text); }
+
+        /* PASO 3: tabla ordenada */
+        .sort-table-wrapper {
+            display: flex;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .sort-col-label {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.78rem;
+            color: var(--bwt-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.6rem;
+        }
+
+        .sorted-row {
+            display: grid;
+            align-items: center;
+            gap: 0;
+            font-family: var(--font-mono);
+            margin-bottom: 3px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            padding: 1px 4px;
+        }
+        .sorted-row:hover { background: rgba(255,255,255,0.04); }
+        .sorted-row.original-pos { background: rgba(57,211,83,0.07); border-left: 2px solid var(--bwt-green); }
+
+        .sort-rank {
+            width: 24px;
+            color: var(--bwt-muted);
+            font-size: 0.72rem;
+            text-align: right;
+            padding-right: 6px;
+        }
+
+        /* PASO 4: construcción L */
+        .L-construction {
+            display: flex;
+            align-items: flex-start;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .L-rows { display: flex; flex-direction: column; gap: 3px; }
+
+        .L-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeChar 0.3s ease both;
+        }
+        @keyframes fadeChar {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .L-row-rank { font-family: var(--font-mono); font-size: 0.75rem; color: var(--bwt-muted); width: 22px; text-align: right; }
+        .L-row-rotation { font-family: var(--font-mono); font-size: 0.88rem; color: var(--bwt-text); letter-spacing: 1px; }
+        .L-row-arrow { color: var(--bwt-muted); font-size: 0.85rem; }
+        .L-row-char {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 1rem;
+            background: rgba(255,123,0,0.18);
+            color: var(--bwt-orange);
+            border: 1px solid rgba(255,123,0,0.45);
+        }
+
+        /* PASO 5: resultado final */
+        .bwt-final-result {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .bwt-result-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .result-label {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.78rem;
+            color: var(--bwt-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 90px;
+        }
+
+        .result-chars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .res-char {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .res-char.original-c { background: rgba(88,166,255,0.12); border: 1px solid rgba(88,166,255,0.3); color: var(--bwt-blue); }
+        .res-char.sorted-c { background: rgba(188,140,255,0.12); border: 1px solid rgba(188,140,255,0.3); color: var(--bwt-purple); }
+        .res-char.bwt-c { background: rgba(255,123,0,0.18); border: 1px solid rgba(255,123,0,0.45); color: var(--bwt-orange); }
+        .res-char.bwt-c.sentinel-c { background: rgba(255,107,107,0.18); border-color: rgba(255,107,107,0.5); color: var(--bwt-red); }
+
+        .bwt-stats {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+            padding: 1rem 1.4rem;
+            background: rgba(57,211,83,0.05);
+            border: 1px solid rgba(57,211,83,0.2);
+            border-radius: 6px;
+        }
+
+        .bwt-stat {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.82rem;
+        }
+        .bwt-stat strong {
+            font-family: var(--font-mono);
+            font-weight: 800;
+            margin-left: 6px;
+        }
+        .bwt-stat.green strong { color: var(--bwt-green); }
+        .bwt-stat.blue strong { color: var(--bwt-blue); }
+        .bwt-stat.orange strong { color: var(--bwt-orange); }
+
+        .bwt-note {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.8rem;
+            color: var(--bwt-muted);
+            margin-top: 0.6rem;
+            line-height: 1.5;
+        }
+
+        .bwt-note code {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.08);
+            padding: 1px 6px;
+            border-radius: 3px;
+            color: var(--bwt-yellow);
+            font-size: 0.85rem;
+        }
+
+        #bwt-status { display: none; }
+        #bwt-status.status-error { display: block; background: rgba(231,76,60,0.15); color: #ff6b6b; border: 1px solid rgba(231,76,60,0.3); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>BioTool Web Avanzada</h1>
+    <nav>
+        <button class="nav-btn active" data-target="nw">Needleman-Wunsch</button>
+        <button class="nav-btn" data-target="sw">Smith-Waterman</button>
+        <button class="nav-btn" data-target="bwt">BWT Transform</button>
+    </nav>
+</header>
+
+<main>
+    <!-- NW -->
+    <section id="nw" class="algorithm-section active">
+        <h2>Alineamiento Global (Needleman-Wunsch)</h2>
+        <p>Ingresa dos secuencias. Se mostrará la matriz, el camino de solución y el alineamiento final.</p>
+        <div class="controls">
+            <div class="form-group">
+                <label for="nw-seq1">Secuencia 1</label>
+                <input type="text" id="nw-seq1" placeholder="Ej: GATTACA" value="GATTACA">
+            </div>
+            <div class="form-group">
+                <label for="nw-seq2">Secuencia 2</label>
+                <input type="text" id="nw-seq2" placeholder="Ej: GCATGCU" value="GCATGCU">
+            </div>
+        </div>
+        <div class="params-grid">
+            <div class="form-group"><label>Match (+)</label><input type="number" id="nw-match" value="1"></div>
+            <div class="form-group"><label>Mismatch (-)</label><input type="number" id="nw-mismatch" value="-1"></div>
+            <div class="form-group"><label>Gap (-)</label><input type="number" id="nw-gap" value="-2"></div>
+        </div>
+        <button class="btn-primary" onclick="runNW()">Calcular y Trazar</button>
+        <div id="nw-status" class="status-msg"></div>
+        <div id="nw-results" class="results-area"></div>
+    </section>
+
+    <!-- SW -->
+    <section id="sw" class="algorithm-section">
+        <h2>Alineamiento Local (Smith-Waterman)</h2>
+        <p>Busca la mejor subcadena común. Resalta el camino de mayor puntuación.</p>
+        <div class="controls">
+            <div class="form-group">
+                <label for="sw-seq1">Secuencia 1</label>
+                <input type="text" id="sw-seq1" placeholder="Ej: TGTTACGG" value="TGTTACGG">
+            </div>
+            <div class="form-group">
+                <label for="sw-seq2">Secuencia 2</label>
+                <input type="text" id="sw-seq2" placeholder="Ej: GGTTGACTA" value="GGTTGACTA">
+            </div>
+        </div>
+        <div class="params-grid">
+            <div class="form-group"><label>Match (+)</label><input type="number" id="sw-match" value="2"></div>
+            <div class="form-group"><label>Mismatch (-)</label><input type="number" id="sw-mismatch" value="-1"></div>
+            <div class="form-group"><label>Gap (-)</label><input type="number" id="sw-gap" value="-2"></div>
+        </div>
+        <button class="btn-primary" onclick="runSW()">Calcular y Trazar</button>
+        <div id="sw-status" class="status-msg"></div>
+        <div id="sw-results" class="results-area"></div>
+    </section>
+
+    <!-- BWT -->
+    <section id="bwt" class="algorithm-section">
+        <h2>⬡ Transformación Burrows-Wheeler</h2>
+        <p>Visualización paso a paso: rotaciones → ordenamiento → extracción de L → resultado final.</p>
+
+        <div class="controls">
+            <div class="form-group">
+                <label for="bwt-seq">Secuencia de Entrada</label>
+                <input type="text" id="bwt-seq" placeholder="Ej: BANANA" value="BANANA">
+            </div>
+        </div>
+        <button class="btn-primary" onclick="runBWT()">▶ Transformar y Visualizar</button>
+        <div id="bwt-status" class="status-msg"></div>
+        <div id="bwt-results" class="results-area"></div>
+    </section>
+</main>
+
+<script>
+    /* ── Navegación ── */
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.algorithm-section').forEach(s => s.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.target).classList.add('active');
+        });
+    });
+
+    function showStatus(id, msg, isError) {
+        const el = document.getElementById(id);
+        el.style.display = 'block';
+        el.textContent = msg;
+        el.className = isError ? 'status-msg status-error' : 'status-msg status-success';
+    }
+    function clearStatus(id) { document.getElementById(id).style.display = 'none'; }
+
+    /* ── Alineamiento ── */
+    function runAlignment(type) {
+        const seq1 = document.getElementById(`${type}-seq1`).value.trim().toUpperCase();
+        const seq2 = document.getElementById(`${type}-seq2`).value.trim().toUpperCase();
+        const match = parseInt(document.getElementById(`${type}-match`).value);
+        const mismatch = parseInt(document.getElementById(`${type}-mismatch`).value);
+        const gap = parseInt(document.getElementById(`${type}-gap`).value);
+        const statusId = `${type}-status`;
+        const resultsId = `${type}-results`;
+        clearStatus(statusId);
+        if (!seq1 || !seq2) { showStatus(statusId, "Ingresa ambas secuencias.", true); return; }
+        const m = seq1.length, n = seq2.length;
+        let matrix = Array(m + 1).fill(null).map(() => Array(n + 1).fill(null));
+        matrix[0][0] = { score: 0, pointer: 'stop', diagScore:'-', upScore:'-', leftScore:'-', log: 'Inicio' };
+        for(let i=1; i<=m; i++) { let s = type==='nw'? i*gap:0; matrix[i][0]={score:s,pointer:type==='nw'?'up':'stop',diagScore:'-',upScore:'-',leftScore:'-',log:`Gap(${s})`}; }
+        for(let j=1; j<=n; j++) { let s = type==='nw'? j*gap:0; matrix[0][j]={score:s,pointer:type==='nw'?'left':'stop',diagScore:'-',upScore:'-',leftScore:'-',log:`Gap(${s})`}; }
+        for(let i=1; i<=m; i++) {
+            for(let j=1; j<=n; j++) {
+                let isMatch = seq1[i-1]===seq2[j-1];
+                let diag = matrix[i-1][j-1].score+(isMatch?match:mismatch);
+                let up = matrix[i-1][j].score+gap;
+                let left = matrix[i][j-1].score+gap;
+                let max=diag, ptr='diag';
+                if(up>max){max=up;ptr='up';}
+                if(left>max){max=left;ptr='left';}
+                if(type==='sw'&&max<0){max=0;ptr='stop';}
+                matrix[i][j]={score:max,pointer:ptr,diagScore:diag,upScore:up,leftScore:left};
+            }
+        }
+        let path=[],i,j,al1="",al2="",mid="";
+        if(type==='nw') {
+            i=m; j=n;
+            while(i>0||j>0) {
+                path.push({i,j});
+                let ptr=matrix[i][j].pointer;
+                if(ptr==='diag'){al1+=seq1[i-1];al2+=seq2[j-1];mid+=seq1[i-1]===seq2[j-1]?"|":" ";i--;j--;}
+                else if(ptr==='up'){al1+=seq1[i-1];al2+="-";mid+=" ";i--;}
+                else{al1+="-";al2+=seq2[j-1];mid+=" ";j--;}
+            }
+            path.push({i:0,j:0});
+        } else {
+            let maxVal=-Infinity;
+            for(let r=0;r<=m;r++) for(let c=0;c<=n;c++) { if(matrix[r][c].score>maxVal){maxVal=matrix[r][c].score;i=r;j=c;} }
+            while(i>0&&j>0&&matrix[i][j].score>0) {
+                path.push({i,j});
+                let ptr=matrix[i][j].pointer;
+                if(ptr==='diag'){al1+=seq1[i-1];al2+=seq2[j-1];mid+=seq1[i-1]===seq2[j-1]?"|":" ";i--;j--;}
+                else if(ptr==='up'){al1+=seq1[i-1];al2+="-";mid+=" ";i--;}
+                else if(ptr==='left'){al1+="-";al2+=seq2[j-1];mid+=" ";j--;}
+                else break;
+            }
+        }
+        al1=al1.split('').reverse().join('');
+        al2=al2.split('').reverse().join('');
+        mid=mid.split('').reverse().join('');
+        renderMatrix(matrix,seq1,seq2,resultsId,path);
+        renderAlignmentResult(resultsId,al1,al2,mid);
+    }
+
+    function renderMatrix(matrix,s1,s2,containerId,path) {
+        const container=document.getElementById(containerId);
+        const pathSet=new Set(path.map(p=>`${p.i},${p.j}`));
+        let html='<div class="matrix-container"><table class="alignment-matrix"><tr><th></th><th></th>';
+        s2.split('').forEach(c=>html+=`<th>${c}</th>`);
+        html+='</tr>';
+        for(let i=0;i<matrix.length;i++) {
+            html+='<tr>';
+            if(i===0) html+='<th></th>'; else html+=`<th>${s1[i-1]}</th>`;
+            for(let j=0;j<matrix[i].length;j++) {
+                let cell=matrix[i][j];
+                let isPath=pathSet.has(`${i},${j}`);
+                let isInit=(i===0||j===0);
+                let style=isInit?'background:#e2e6ea;':'';
+
+                let opsHTML='';
+                if(!isInit && i>0 && j>0) {
+                    // Show all 3 ops
+                    const ops=[
+                        {label:'↖ '+cell.diagScore, key:'diag', cls:'op-diag'},
+                        {label:'↑ '+cell.upScore,   key:'up',   cls:'op-up'},
+                        {label:'← '+cell.leftScore, key:'left', cls:'op-left'},
+                    ];
+                    opsHTML='<div class="ops-row">';
+                    ops.forEach(op=>{
+                        const chosen=(cell.pointer===op.key)?'op-chosen':'';
+                        opsHTML+=`<span class="op-chip ${op.cls} ${chosen}" title="${op.label}">${op.label}</span>`;
+                    });
+                    opsHTML+='</div>';
+                } else if(isInit) {
+                    opsHTML=`<span class="op-chip op-stop">•</span>`;
+                }
+
+                html+=`<td class="${isPath?'cell-highlight':''}" style="${style}">
+                    <div class="cell-detail">
+                        <span class="score-val">${cell.score}</span>
+                        ${opsHTML}
+                    </div>
+                </td>`;
+            }
+            html+='</tr>';
+        }
+        html+='</table></div>';
+        container.innerHTML=html;
+    }
+
+    function renderAlignmentResult(containerId, al1, al2, mid) {
+        // Build column-by-column display so | aligns exactly in the center
+        let colsHTML = '';
+        for (let k = 0; k < al1.length; k++) {
+            const c1 = al1[k];
+            const c2 = al2[k];
+            const m  = mid[k];
+            const isMatch  = m === '|';
+            const isGap1   = c1 === '-';
+            const isGap2   = c2 === '-';
+            const color1   = isGap1 ? '#e74c3c' : '#58a6ff';
+            const color2   = isGap2 ? '#e74c3c' : '#e67e22';
+            const midColor = isMatch ? '#27ae60' : 'transparent';
+            
+            colsHTML += `<div style="display:flex;flex-direction:column;align-items:center;min-width:22px;">
+                <span style="font-family:var(--font-mono);font-size:1.15rem;font-weight:700;color:${color1};line-height:1.3">${c1}</span>
+                <span style="font-family:var(--font-mono);font-size:1rem;font-weight:900;color:${midColor};line-height:1">${isMatch?'|':'&nbsp;'}</span>
+                <span style="font-family:var(--font-mono);font-size:1.15rem;font-weight:700;color:${color2};line-height:1.3">${c2}</span>
+            </div>`;
+        }
+        const matches = [...mid].filter(c=>c==='|').length;
+        const pct = Math.round(matches/al1.length*100);
+        document.getElementById(containerId).innerHTML += `
+        <div class="alignment-result">
+            <h3 style="color:white;margin-bottom:12px;font-size:1rem;">Alineamiento Final</h3>
+            <div style="display:flex;gap:2px;flex-wrap:wrap;align-items:center;">${colsHTML}</div>
+            <div style="margin-top:12px;font-family:'Sora',sans-serif;font-size:0.8rem;color:#8b949e;">
+                <span style="color:#27ae60;font-weight:600">${matches} matches</span> / ${al1.length} columnas
+                &nbsp;·&nbsp; <span style="color:#ffd60a">${pct}% identidad</span>
+                &nbsp;·&nbsp; gaps: <span style="color:#e74c3c">${[...mid].filter(c=>c===' ').length}</span>
+            </div>
+        </div>`;
+    }
+
+    function runNW() { runAlignment('nw'); }
+    function runSW() { runAlignment('sw'); }
+
+    /* ══════════════════════════════════════════════
+       BWT — LÓGICA Y VISUALIZACIÓN COMPLETA
+       ══════════════════════════════════════════════ */
+
+    function runBWT() {
+        const rawInput = document.getElementById('bwt-seq').value.trim().toUpperCase();
+        clearStatus('bwt-status');
+        if (!rawInput) { showStatus('bwt-status', "Ingresa una secuencia.", true); return; }
+
+        const SENTINEL = '$';
+        const input = rawInput + SENTINEL;
+        const n = input.length;
+
+        // 1. Generar todas las rotaciones
+        const rotations = [];
+        for (let i = 0; i < n; i++) {
+            rotations.push({ str: input.substring(i) + input.substring(0, i), origIdx: i });
+        }
+
+        // 2. Ordenar
+        const sorted = [...rotations].sort((a, b) => a.str.localeCompare(b.str));
+
+        // 3. Original índice en sorted (para la fila verde)
+        const originalInSorted = sorted.findIndex(r => r.origIdx === 0);
+
+        // 4. Extraer L (última columna)
+        const L = sorted.map(r => r.str[n - 1]).join('');
+
+        // 5. Renderizar
+        const container = document.getElementById('bwt-results');
+        container.innerHTML = buildBWTHTML(rawInput, input, rotations, sorted, L, originalInSorted, n, SENTINEL);
+
+        // Colapsar pasos al click
+        document.querySelectorAll('.bwt-step-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const step = header.parentElement;
+                const body = step.querySelector('.bwt-step-body');
+                const isCollapsed = step.classList.toggle('collapsed');
+                if (!isCollapsed) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                } else {
+                    body.style.maxHeight = '0';
+                }
+            });
+        });
+
+        // Set inicial de maxHeight en todos
+        document.querySelectorAll('.bwt-step-body').forEach(body => {
+            body.style.maxHeight = body.scrollHeight + 'px';
+        });
+    }
+
+    function buildBWTHTML(rawInput, inputWithSentinel, rotations, sorted, L, originalInSorted, n, SENTINEL) {
+        const colors = ['#58a6ff','#bc8cff','#39d353','#ffd60a','#ff7b00','#ff6b6b','#56d364','#79c0ff'];
+        const charColorMap = {};
+        let ci = 0;
+        for (const c of [...new Set(rawInput.split(''))]) {
+            charColorMap[c] = colors[ci++ % colors.length];
+        }
+        charColorMap[SENTINEL] = '#ff6b6b';
+
+        function colorChar(c, cls = '') {
+            const col = charColorMap[c] || '#e6edf3';
+            return `<span class="rot-char ${cls}" style="color:${col}${cls==='last-char'?`;background:rgba(255,123,0,0.18);border:1px solid rgba(255,123,0,0.4)`:''}${c===SENTINEL?`;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3)`:''}">${c}</span>`;
+        }
+
+        /* ── Paso 1: Secuencia original ── */
+        let step1 = `<div class="original-seq-display" style="margin-bottom:1.2rem;padding-bottom:2rem">`;
+        rawInput.split('').forEach((c, i) => {
+            const col = charColorMap[c] || '#e6edf3';
+            step1 += `<span class="seq-char normal" style="color:${col};border-color:${col}40;background:${col}15">${c}<span class="char-idx">${i}</span></span>`;
+        });
+        step1 += `<span class="arrow-separator">+</span>`;
+        step1 += `<span class="seq-char sentinel">${SENTINEL}<span class="char-idx">$</span></span>`;
+        step1 += `<span class="arrow-separator">=</span>`;
+        inputWithSentinel.split('').forEach((c, i) => {
+            const col = charColorMap[c] || '#e6edf3';
+            step1 += `<span class="seq-char ${c===SENTINEL?'sentinel':'normal'}" style="color:${col};border-color:${col}40;background:${col}15">${c}<span class="char-idx">${i}</span></span>`;
+        });
+        step1 += `</div>`;
+        step1 += `<p class="bwt-note">Se agrega el caracter centinela <code>$</code> al final. Este símbolo es lexicográficamente menor a cualquier otro, garantizando que cada rotación sea única y el algoritmo funcione correctamente.</p>`;
+
+        /* ── Paso 2: Tabla de rotaciones ── */
+        let step2 = `<p class="rotation-label">Se generan las <strong style="color:var(--bwt-text)">${n} rotaciones cíclicas</strong> de la cadena con centinela:</p>`;
+        step2 += `<div class="rotation-grid" style="grid-template-columns: 28px repeat(${n}, 32px)">`;
+
+        // Header
+        step2 += `<div class="rot-idx" style="color:var(--bwt-muted);font-size:0.72rem;text-align:center">#</div>`;
+        for (let k = 0; k < n; k++) {
+            step2 += `<div style="color:var(--bwt-muted);font-size:0.65rem;text-align:center;width:32px;font-family:var(--font-mono)">${k}</div>`;
+        }
+        step2 += '</div>';
+
+        rotations.forEach((r, idx) => {
+            step2 += `<div class="rot-row" style="grid-template-columns: 28px repeat(${n}, 32px)">`;
+            step2 += `<span class="rot-idx">${idx}</span>`;
+            r.str.split('').forEach((c, pos) => {
+                let cls = '';
+                if (pos === n - 1) cls = 'last-char';
+                else if (c === SENTINEL) cls = 'sentinel-char';
+                else cls = 'normal-char';
+                step2 += colorChar(c, cls);
+            });
+            step2 += `</div>`;
+        });
+
+        step2 += `<p class="bwt-note" style="margin-top:0.8rem">Los caracteres en <span style="color:var(--bwt-orange);font-weight:600">naranja</span> son la última columna — estos formarán la cadena BWT.</p>`;
+
+        /* ── Paso 3: Tabla ordenada ── */
+        let step3 = `<p class="rotation-label">Las ${n} rotaciones se ordenan alfabéticamente. La columna <strong style="color:var(--bwt-orange)">L (última)</strong> es el resultado BWT. La fila <strong style="color:var(--bwt-green)">verde</strong> es la rotación original (índice 0).</p>`;
+
+        step3 += `<div style="overflow-x:auto"><div class="rotation-grid" style="grid-template-columns: 24px 24px repeat(${n}, 32px)">`;
+
+        // Header
+        step3 += `<div style="font-size:0.65rem;color:var(--bwt-muted);text-align:right;padding-right:6px">rank</div>`;
+        step3 += `<div style="font-size:0.65rem;color:var(--bwt-muted)">rot</div>`;
+        for (let k = 0; k < n; k++) {
+            const isLast = k === n - 1;
+            step3 += `<div style="color:${isLast?'var(--bwt-orange)':'var(--bwt-muted)'};font-size:0.65rem;text-align:center;width:32px;font-family:var(--font-mono);font-weight:${isLast?700:400}">${isLast?'L':k}</div>`;
+        }
+        step3 += '</div>';
+
+        sorted.forEach((r, rank) => {
+            const isOrig = rank === originalInSorted;
+            step3 += `<div class="sorted-row ${isOrig?'original-pos':''}" style="grid-template-columns: 24px 24px repeat(${n}, 32px)">`;
+            step3 += `<span class="sort-rank">${rank}</span>`;
+            step3 += `<span class="rot-idx" style="color:var(--bwt-muted);font-size:0.7rem;width:24px">${r.origIdx}</span>`;
+            r.str.split('').forEach((c, pos) => {
+                let cls = pos === n - 1 ? 'last-char' : c === SENTINEL ? 'sentinel-char' : 'normal-char';
+                step3 += colorChar(c, cls);
+            });
+            step3 += `</div>`;
+        });
+        step3 += `</div></div>`;
+        step3 += `<p class="bwt-note" style="margin-top:0.8rem">La fila en <span style="color:var(--bwt-green)">verde</span> (rank ${originalInSorted}) es la posición de la cadena original en la tabla. Este índice se necesita para invertir la BWT.</p>`;
+
+        /* ── Paso 4: Construcción de L ── */
+        let step4 = `<p class="rotation-label" style="margin-bottom:0.8rem">Tomando el último carácter de cada fila ordenada se construye la cadena L:</p>`;
+        step4 += `<div class="L-construction">`;
+        step4 += `<div class="L-rows">`;
+        sorted.forEach((r, rank) => {
+            const lastChar = r.str[n - 1];
+            const col = charColorMap[lastChar] || '#e6edf3';
+            step4 += `<div class="L-row" style="animation-delay:${rank * 0.04}s">`;
+            step4 += `<span class="L-row-rank">${rank}</span>`;
+            step4 += `<span class="L-row-rotation" style="color:var(--bwt-muted)">`;
+            // Mostrar rotación abreviada con F y L marcadas
+            const first = r.str[0];
+            const fcol = charColorMap[first] || '#e6edf3';
+            step4 += `<span style="color:${fcol};font-weight:700">${first}</span>`;
+            if (n > 3) step4 += `<span style="color:var(--bwt-muted);font-size:0.75rem">···</span>`;
+            step4 += `</span>`;
+            step4 += `<span class="L-row-arrow">→</span>`;
+            step4 += `<span class="L-row-char" style="background:rgba(${hexToRgb(col)},0.18);color:${col};border-color:rgba(${hexToRgb(col)},0.45)">${lastChar}</span>`;
+            step4 += `</div>`;
+        });
+        step4 += `</div>`;
+
+        // Mostrar L construyéndose
+        step4 += `<div>`;
+        step4 += `<div class="sort-col-label">Cadena L resultante</div>`;
+        step4 += `<div class="result-chars" style="flex-wrap:wrap;gap:4px;max-width:320px">`;
+        L.split('').forEach((c, i) => {
+            const col = charColorMap[c] || '#e6edf3';
+            step4 += `<span class="res-char" style="background:rgba(${hexToRgb(col)},0.18);border:1px solid rgba(${hexToRgb(col)},0.45);color:${col};animation-delay:${i*0.06}s;animation:fadeChar 0.3s ease both">${c}</span>`;
+        });
+        step4 += `</div>`;
+        step4 += `<p class="bwt-note" style="margin-top:0.8rem">L = <code>${L}</code></p>`;
+        step4 += `</div></div>`;
+
+        /* ── Paso 5: Resultado final ── */
+        const F = sorted.map(r => r.str[0]).join('');
+        let step5 = `<div class="bwt-final-result">`;
+
+        step5 += `<div class="bwt-result-row"><span class="result-label" style="color:var(--bwt-muted)">Original</span><div class="result-chars">`;
+        rawInput.split('').forEach(c => {
+            const col = charColorMap[c] || '#e6edf3';
+            step5 += `<span class="res-char original-c" style="color:${col};background:rgba(${hexToRgb(col)},0.12);border-color:rgba(${hexToRgb(col)},0.3)">${c}</span>`;
+        });
+        step5 += `</div></div>`;
+
+        step5 += `<div class="bwt-result-row"><span class="result-label" style="color:var(--bwt-purple)">F (primera col)</span><div class="result-chars">`;
+        F.split('').forEach(c => {
+            const col = charColorMap[c] || '#e6edf3';
+            step5 += `<span class="res-char sorted-c" style="color:${col};background:rgba(${hexToRgb(col)},0.12);border-color:rgba(${hexToRgb(col)},0.3)">${c}</span>`;
+        });
+        step5 += `</div></div>`;
+
+        step5 += `<div class="bwt-result-row"><span class="result-label" style="color:var(--bwt-orange);font-weight:700">BWT = L</span><div class="result-chars">`;
+        L.split('').forEach(c => {
+            const col = charColorMap[c] || '#e6edf3';
+            const isSent = c === SENTINEL;
+            step5 += `<span class="res-char bwt-c ${isSent?'sentinel-c':''}" style="color:${col};background:rgba(${hexToRgb(col)},0.18);border:2px solid rgba(${hexToRgb(col)},0.55)">${c}</span>`;
+        });
+        step5 += `</div></div>`;
+
+        // Stats
+        const freq = {};
+        L.split('').forEach(c => { if(c !== SENTINEL) freq[c] = (freq[c]||0)+1; });
+        const runLen = countRuns(L);
+        const comprRatio = (rawInput.length / L.length * 100).toFixed(0);
+
+        step5 += `<div class="bwt-stats">`;
+        step5 += `<span class="bwt-stat green">BWT(${rawInput}) <strong>${L}</strong></span>`;
+        step5 += `<span class="bwt-stat blue">Índice original <strong>${originalInSorted}</strong></span>`;
+        step5 += `<span class="bwt-stat orange">Runs en L <strong>${runLen}</strong> <span style="color:var(--bwt-muted);font-size:0.75rem">(compresión RLE)</span></span>`;
+        step5 += `</div>`;
+
+        const freqStr = Object.entries(freq).map(([c,f])=>`${c}×${f}`).join('  ');
+        step5 += `<p class="bwt-note">Frecuencia de caracteres en L: <code>${freqStr}</code> — Cuantos más runs consecutivos tenga L, mejor se comprimirá.</p>`;
+        step5 += `</div>`;
+
+        /* ── Ensamblar ── */
+        return `<div class="bwt-pipeline">
+            ${makeStep(1,'step-1','Paso 1 — Agregar centinela','Preparación de la cadena',step1)}
+            ${makeStep(2,'step-2','Paso 2 — Generar rotaciones',`${n} rotaciones cíclicas`,step2)}
+            ${makeStep(3,'step-3','Paso 3 — Ordenar rotaciones','Lexicográficamente',step3)}
+            ${makeStep(4,'step-4','Paso 4 — Extraer columna L','Construcción de BWT',step4)}
+            ${makeStep(5,'step-5','Paso 5 — Resultado Final','Cadena BWT completada',step5)}
+        </div>`;
+    }
+
+    function makeStep(num, cls, title, subtitle, body) {
+        return `<div class="bwt-step ${cls}">
+            <div class="bwt-step-header">
+                <span class="step-badge">${num}</span>
+                <span class="step-title">${title}</span>
+                <span class="step-subtitle">${subtitle}</span>
+                <span class="step-toggle">▼</span>
+            </div>
+            <div class="bwt-step-body">${body}</div>
+        </div>`;
+    }
+
+    function countRuns(s) {
+        if (!s.length) return 0;
+        let runs = 1;
+        for (let i = 1; i < s.length; i++) if (s[i] !== s[i-1]) runs++;
+        return runs;
+    }
+
+    function hexToRgb(hex) {
+        // Support both hex and CSS var names
+        if (!hex || !hex.startsWith('#')) return '255,255,255';
+        const r = parseInt(hex.slice(1,3),16);
+        const g = parseInt(hex.slice(3,5),16);
+        const b = parseInt(hex.slice(5,7),16);
+        return `${r},${g},${b}`;
+    }
+</script>
+</body>
+</html>
