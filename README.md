@@ -183,4 +183,4 @@ Las contribuciones son bienvenidas. Si deseas mejorar la herramienta:
 
 ---
 
-*Última actualización: 2025*
+*Última actualización: 2026*
